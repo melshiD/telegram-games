@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Simple Clicker</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/vue@3"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+        #app {
+            text-align: center;
+            padding: 20px;
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 32px;
+            margin-bottom: 40px;
+            color: #00d4aa;
+        }
+        .score-display {
+            font-size: 48px;
+            font-weight: 700;
+            margin: 40px 0;
+            color: #ffeb3b;
+        }
+        .clicker {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 4px solid #ffffff;
+            font-size: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            cursor: pointer;
+            transition: all 150ms ease;
+            user-select: none;
+        }
+        .clicker:active {
+            transform: scale(0.9);
+        }
+        .stats {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-around;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            background: #00d4aa;
+            color: #1a1a1a;
+            cursor: pointer;
+            transition: all 150ms ease;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>🦞 Simple Clicker</h1>
+        
+        <div class="score-display">{{ displayScore }}</div>
+        
+        <div class="clicker" @click="handleClick">
+            🦀
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-label">Total Clicks</div>
+                <div class="stat-value">{{ clickCount }}</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Per Click</div>
+                <div class="stat-value">+{{ clickPower }}</div>
+            </div>
+        </div>
+        
+        <button @click="share">Share Score</button>
+    </div>
+    
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        const tg = window.Telegram?.WebApp || { 
+            ready: () => {}, 
+            expand: () => {}, 
+            HapticFeedback: { impactOccurred: () => {} },
+            openTelegramLink: (url) => window.open(url, '_blank')
+        };
+        
+        createApp({
+            setup() {
+                // State
+                const score = ref(0);
+                const clickCount = ref(0);
+                const clickPower = ref(1);
+                
+                // Computed
+                const displayScore = computed(() => score.value.toLocaleString());
+                
+                // Methods
+                function handleClick() {
+                    tg.HapticFeedback.impactOccurred('medium');
+                    score.value += clickPower.value;
+                    clickCount.value++;
+                    saveGame();
+                    
+                    // Upgrade every 50 clicks
+                    if (clickCount.value % 50 === 0) {
+                        clickPower.value++;
+                        tg.HapticFeedback.impactOccurred('success');
+                    }
+                }
+                
+                function share() {
+                    const text = `I scored ${score.value.toLocaleString()} points in Simple Clicker! 🦀`;
+                    const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+                    tg.openTelegramLink(url);
+                }
+                
+                function saveGame() {
+                    const state = {
+                        score: score.value,
+                        clickCount: clickCount.value,
+                        clickPower: clickPower.value,
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem('simple-clicker', JSON.stringify(state));
+                }
+                
+                function loadGame() {
+                    try {
+                        const saved = localStorage.getItem('simple-clicker');
+                        if (saved) {
+                            const state = JSON.parse(saved);
+                            score.value = state.score || 0;
+                            clickCount.value = state.clickCount || 0;
+                            clickPower.value = state.clickPower || 1;
+                        }
+                    } catch (error) {
+                        console.error('Failed to load game:', error);
+                    }
+                }
+                
+                // Lifecycle
+                onMounted(() => {
+                    tg.ready();
+                    tg.expand();
+                    loadGame();
+                });
+                
+                return { 
+                    score,
+                    clickCount,
+                    clickPower,
+                    displayScore,
+                    handleClick,
+                    share
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
