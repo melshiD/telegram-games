@@ -97,18 +97,6 @@
     "priority": 6
   },
   {
-    "id": 9,
-    "status": "pending",
-    "name": "standup-bot",
-    "title": "StandupTG - Daily Standup Bot",
-    "source": "Pipeline Phase 5 (Telegram variant of #1)",
-    "spec": "Bot DMs team members 3 configurable standup questions at scheduled time. Collects responses, posts formatted summary to group. Mini-app for: configuring questions, schedule, viewing history, team analytics. Flat pricing, not per-user.",
-    "price": "$9/mo",
-    "users": "Remote teams coordinating via Telegram",
-    "build_days": 3,
-    "priority": 7
-  },
-  {
     "id": 7,
     "status": "pending",
     "name": "receipt-expense",
@@ -118,6 +106,18 @@
     "price": "$5/mo",
     "users": "Small business owners, freelancers tracking expenses",
     "build_days": 4,
+    "priority": 7
+  },
+  {
+    "id": 9,
+    "status": "pending",
+    "name": "standup-bot",
+    "title": "StandupTG - Daily Standup Bot",
+    "source": "Pipeline Phase 5 (Telegram variant of #1)",
+    "spec": "Bot DMs team members 3 configurable standup questions at scheduled time. Collects responses, posts formatted summary to group. Mini-app for: configuring questions, schedule, viewing history, team analytics. Flat pricing, not per-user.",
+    "price": "$9/mo",
+    "users": "Remote teams coordinating via Telegram",
+    "build_days": 3,
     "priority": 8
   },
   {
