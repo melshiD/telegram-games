@@ -1,0 +1,60 @@
+{
+  "shared_services": [
+    {
+      "name": "GitHub Pages",
+      "purpose": "Frontend hosting for all mini-apps",
+      "usd_per_month": 0,
+      "free_tier": true,
+      "free_tier_limit": "1GB storage, 100GB bandwidth/mo",
+      "upgrade_trigger": "Exceeding bandwidth (unlikely for mini-apps)",
+      "upgrade_cost_usd_per_month": 0,
+      "used_by": ["all"]
+    },
+    {
+      "name": "Cloudflare Workers",
+      "purpose": "Shared bot backend — route Telegram webhooks to per-app handlers",
+      "usd_per_month": 0,
+      "free_tier": true,
+      "free_tier_limit": "100k requests/day, 10ms CPU/request",
+      "upgrade_trigger": ">100k req/day or need longer execution",
+      "upgrade_cost_usd_per_month": 5.00,
+      "used_by": ["telescheduler", "gatebot", "dripflow", "appointment-reminders", "standup-bot", "review-requester", "doc-collector", "invoice-tracker"]
+    },
+    {
+      "name": "Supabase (free tier)",
+      "purpose": "Shared Postgres DB + auth + realtime for all apps needing persistence beyond localStorage",
+      "usd_per_month": 0,
+      "free_tier": true,
+      "free_tier_limit": "500MB DB, 1GB file storage, 50k MAU, 2M edge function invocations",
+      "upgrade_trigger": ">500MB data or >50k MAU across all apps combined",
+      "upgrade_cost_usd_per_month": 25.00,
+      "used_by": ["gatebot", "dripflow", "telescheduler", "appointment-reminders", "standup-bot", "invoice-tracker", "doc-collector"]
+    },
+    {
+      "name": "Stripe",
+      "purpose": "Payment processing for paid apps",
+      "usd_per_month": 0,
+      "free_tier": true,
+      "free_tier_limit": "No monthly fee, 2.9% + $0.30 per transaction",
+      "upgrade_trigger": "N/A — usage-based only",
+      "upgrade_cost_usd_per_month": 0,
+      "used_by": ["gatebot"]
+    }
+  ],
+  "on_demand_services": [
+    {
+      "name": "Claude API (Anthropic)",
+      "purpose": "LLM for receipt parsing, action item extraction, smart features",
+      "pricing_model": "per-token",
+      "estimated_usd_per_1k_uses": 0.50,
+      "used_by": ["receipt-expense", "action-extractor"]
+    }
+  ],
+  "totals": {
+    "shared_burn_rate_usd_per_month": 0,
+    "shared_burn_rate_after_free_tier_usd_per_month": 30.00,
+    "on_demand_estimated_usd_per_month": 0,
+    "portfolio_total_usd_per_month": 0,
+    "notes": "All shared services currently on free tiers. Costs begin when free tier limits are exceeded, which is driven by total user volume across all apps."
+  }
+}
