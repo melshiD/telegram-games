@@ -38,6 +38,9 @@
         .chip-in_progress { background: rgba(51,144,236,0.2); color: #3390ec; }
         .chip-done { background: rgba(52,199,89,0.2); color: #34c759; }
         .chip-blocked { background: rgba(255,69,58,0.2); color: #ff453a; }
+        .chip-tier-1 { background: rgba(52,199,89,0.15); color: #34c759; }
+        .chip-tier-2 { background: rgba(255,159,10,0.15); color: #ff9f0a; }
+        .chip-tier-3 { background: rgba(255,69,58,0.15); color: #ff453a; }
         .chip-lg { padding: 4px 14px; font-size: 14px; }
 
         /* Cards */
@@ -237,6 +240,7 @@
                         <div class="flex items-center gap-2 mb-1">
                             <span class="text-xs font-bold" style="color: var(--tg-hint)">#{{ app.priority }}</span>
                             <span class="chip" :class="'chip-' + app.status">{{ statusLabel(app.status) }}</span>
+                            <span v-if="app.tier" class="chip" :class="'chip-tier-' + app.tier">T{{ app.tier }}</span>
                         </div>
                         <h3 class="text-sm font-semibold truncate">{{ app.title }}</h3>
                         <p class="text-xs mt-1" style="color: var(--tg-hint)">{{ app.price || 'No price set' }}</p>
