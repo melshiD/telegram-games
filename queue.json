@@ -36,7 +36,8 @@
     "price": "$9-12/mo",
     "users": "Telegram community managers, crypto group admins, educators",
     "build_days": 3,
-    "priority": 1
+    "priority": 1,
+    "tier": "2"
   },
   {
     "id": 2,
@@ -48,7 +49,8 @@
     "price": "$19/mo",
     "users": "Paid community owners, course creators, premium group admins",
     "build_days": 4,
-    "priority": 2
+    "priority": 2,
+    "tier": "2"
   },
   {
     "id": 3,
@@ -60,7 +62,8 @@
     "price": "$15/mo",
     "users": "Telegram-based course creators, educators, onboarding managers",
     "build_days": 3,
-    "priority": 3
+    "priority": 3,
+    "tier": "2"
   },
   {
     "id": 4,
@@ -72,7 +75,8 @@
     "price": "$5/mo or $19 lifetime",
     "users": "Freelancers who communicate with clients on Telegram",
     "build_days": 3,
-    "priority": 4
+    "priority": 4,
+    "tier": "2"
   },
   {
     "id": 5,
@@ -84,7 +88,8 @@
     "price": "$5-9/mo",
     "users": "Service businesses (salons, clinics, tutors) especially non-US markets",
     "build_days": 4,
-    "priority": 5
+    "priority": 5,
+    "tier": "2"
   },
   {
     "id": 6,
@@ -96,7 +101,8 @@
     "price": "$9/mo",
     "users": "Personal trainers with Telegram client groups",
     "build_days": 3,
-    "priority": 6
+    "priority": 6,
+    "tier": "2"
   },
   {
     "id": 7,
@@ -108,7 +114,8 @@
     "price": "$5/mo",
     "users": "Small business owners, freelancers tracking expenses",
     "build_days": 4,
-    "priority": 7
+    "priority": 7,
+    "tier": "3"
   },
   {
     "id": 9,
@@ -120,7 +127,8 @@
     "price": "$9/mo",
     "users": "Remote teams coordinating via Telegram",
     "build_days": 3,
-    "priority": 8
+    "priority": 8,
+    "tier": "2"
   },
   {
     "id": 8,
@@ -132,7 +140,8 @@
     "price": "$5/mo",
     "users": "Consultants, team leads, project managers",
     "build_days": 3,
-    "priority": 9
+    "priority": 9,
+    "tier": "3"
   },
   {
     "id": 10,
@@ -144,7 +153,8 @@
     "price": "$5/mo",
     "users": "Creators on Instagram/TikTok/Telegram who want a simple bio page",
     "build_days": 3,
-    "priority": 10
+    "priority": 10,
+    "tier": "1"
   },
   {
     "id": 11,
@@ -156,7 +166,8 @@
     "price": "$9/mo",
     "users": "Local businesses (restaurants, salons, clinics)",
     "build_days": 3,
-    "priority": 11
+    "priority": 11,
+    "tier": "2"
   },
   {
     "id": 12,
@@ -168,6 +179,7 @@
     "price": "$14/mo",
     "users": "Solo bookkeepers, accountants, lawyers collecting client docs",
     "build_days": 4,
-    "priority": 12
+    "priority": 12,
+    "tier": "2"
   }
 ]
