@@ -47,16 +47,21 @@ telegram-games/
 ├── DELEGATE.md                  # Task delegation patterns
 ├── QUEUE_CONVENTION.md          # How the build queue works
 ├── queue.json                   # Build queue (autobot processes this)
+├── infrastructure.json          # Shared service costs and free tier tracking
 ├── OPPORTUNITY_PIPELINE.md      # Full opportunity pipeline (reference)
 ├── apps/                        # Production apps (one folder per app)
+│   ├── queue-manager/           # QueuePilot — internal queue management tool
 │   └── {app-name}/
 │       └── index.html           # Single-file app
 ├── examples/                    # Reference implementations
 │   └── simple-clicker.html
 ├── templates/                   # Starter templates
 │   └── game-template.html
+├── session_logs/                # Session handoff logs (NEXT_SESSION_LOG_*)
 ├── .claude/                     # Agent config (commands, agents, skills)
-├── .github/workflows/           # CI/CD (PR review, security, issues)
+│   └── commands/build-next.md   # Kishbrac build command
+├── .github/workflows/           # CI/CD (PR review, security, issues, build dispatch)
+│   └── build-agent.yml          # Triggers on queue.json → notifies Telegram
 └── .workflow/                   # Supercharged workflows submodule
 ```
 
@@ -183,4 +188,30 @@ Use conventional commits:
 
 ---
 
-*Last updated: 2026-02-10*
+## Session Logs
+
+Session handoff logs live in `session_logs/`. Each log captures what was built, key learnings, gotchas, current state, and priorities for the next session.
+
+**Convention:** `NEXT_SESSION_LOG_{date}_{time}_{DESCRIPTIVE_TITLE}.md`
+
+**Always read the latest session log before starting work.** It contains the exact state of the project and what needs to happen next.
+
+Latest: `session_logs/NEXT_SESSION_LOG_2026-02-11_2030_QUEUEPILOT_BUILD_AND_AUTOMATION.md`
+
+---
+
+## Automation Pipeline
+
+### How Builds Get Triggered
+1. Dave taps **Start Build** in QueuePilot (Telegram mini-app)
+2. QueuePilot commits `status: "in_progress"` to `queue.json` via GitHub Contents API
+3. Push to main triggers `.github/workflows/build-agent.yml`
+4. Workflow creates a Telegram forum topic and posts the spec
+5. Kishbrac (VPS) polls `queue.json`, detects `in_progress` item, runs `/build-next`
+
+### Key: Kishbrac polls `queue.json` directly
+Kishbrac cannot receive Telegram messages sent by himself (bots don't see own messages). The reliable trigger is polling `queue.json` via the GitHub API every 60s for `in_progress` items without existing `apps/{name}/` folders.
+
+---
+
+*Last updated: 2026-02-11*
