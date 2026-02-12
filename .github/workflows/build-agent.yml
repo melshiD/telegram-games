@@ -20,8 +20,8 @@ jobs:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.KISHBRAC_CHAT_ID }}
         run: |
-          node --input-type=commonjs << 'SCRIPT'
-          const fs = require('fs');
+          node --input-type=module << 'SCRIPT'
+          import fs from 'fs';
           const queue = JSON.parse(fs.readFileSync('queue.json', 'utf8'));
 
           // Find in_progress items that haven't been built yet
