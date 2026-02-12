@@ -28,7 +28,7 @@
   },
   {
     "id": 1,
-    "status": "in_progress",
+    "status": "pending",
     "name": "telescheduler",
     "title": "TeleScheduler - Recurring Message Scheduler",
     "source": "Pipeline #7",
@@ -36,8 +36,7 @@
     "price": "$9-12/mo",
     "users": "Telegram community managers, crypto group admins, educators",
     "build_days": 3,
-    "priority": 1,
-    "started_at": "2026-02-12T00:52:20.761Z"
+    "priority": 1
   },
   {
     "id": 2,
