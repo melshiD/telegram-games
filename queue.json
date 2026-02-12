@@ -145,7 +145,7 @@
   },
   {
     "id": 10,
-    "status": "in_progress",
+    "status": "pending",
     "name": "link-in-bio",
     "title": "BioLinks - Link-in-Bio with Email Capture",
     "source": "Pipeline #71 (Telegram adaptation)",
@@ -154,8 +154,7 @@
     "users": "Creators on Instagram/TikTok/Telegram who want a simple bio page",
     "build_days": 3,
     "priority": 10,
-    "tier": "1",
-    "started_at": "2026-02-12T01:11:17.116Z"
+    "tier": "1"
   },
   {
     "id": 11,
