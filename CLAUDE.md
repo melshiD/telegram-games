@@ -188,18 +188,6 @@ Use conventional commits:
 
 ---
 
-## Session Logs
-
-Session handoff logs live in `session_logs/`. Each log captures what was built, key learnings, gotchas, current state, and priorities for the next session.
-
-**Convention:** `NEXT_SESSION_LOG_{date}_{time}_{DESCRIPTIVE_TITLE}.md`
-
-**Always read the latest session log before starting work.** It contains the exact state of the project and what needs to happen next.
-
-Latest: `session_logs/NEXT_SESSION_LOG_2026-02-11_2030_QUEUEPILOT_BUILD_AND_AUTOMATION.md`
-
----
-
 ## Automation Pipeline
 
 ### How Builds Get Triggered
