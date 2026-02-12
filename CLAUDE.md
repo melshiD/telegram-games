@@ -188,6 +188,16 @@ Use conventional commits:
 
 ---
 
+## Session Logs (Local Only)
+
+Session handoff logs live in `session_logs/` (gitignored — never committed). Each log captures what was built, key learnings, gotchas, current state, and priorities for the next session.
+
+**Convention:** `NEXT_SESSION_LOG_{date}_{time}_{DESCRIPTIVE_TITLE}.md`
+
+**Always read the latest session log before starting work.** It contains the exact state of the project and what needs to happen next.
+
+---
+
 ## Automation Pipeline
 
 ### How Builds Get Triggered
