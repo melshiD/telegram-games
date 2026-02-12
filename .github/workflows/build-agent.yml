@@ -1,0 +1,124 @@
+name: Kishbrac Build Dispatch
+
+on:
+  push:
+    branches: [main]
+    paths: [queue.json]
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect and dispatch build
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.KISHBRAC_CHAT_ID }}
+        run: |
+          node << 'SCRIPT'
+          const fs = require('fs');
+          const queue = JSON.parse(fs.readFileSync('queue.json', 'utf8'));
+
+          // Find in_progress items that haven't been built yet
+          const targets = queue.filter(app =>
+            app.status === 'in_progress' &&
+            !fs.existsSync(`apps/${app.name}/index.html`)
+          );
+
+          if (targets.length === 0) {
+            console.log('No unbuilt in_progress apps found. Exiting.');
+            process.exit(0);
+          }
+
+          const BOT = process.env.BOT_TOKEN;
+          const CHAT = process.env.CHAT_ID;
+          const API = `https://api.telegram.org/bot${BOT}`;
+
+          async function tg(method, body) {
+            const res = await fetch(`${API}/${method}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (!data.ok) {
+              console.error(`Telegram API error (${method}):`, data.description);
+              return null;
+            }
+            return data.result;
+          }
+
+          let queueChanged = false;
+
+          for (const app of targets) {
+            console.log(`Dispatching build: ${app.name}`);
+
+            // Create forum topic if we don't have one yet
+            let topicId = app.forum_topic_id || null;
+
+            if (!topicId) {
+              const statusEmoji = { '1': '🟢', '2': '🟡', '3': '🔴' };
+              const topic = await tg('createForumTopic', {
+                chat_id: CHAT,
+                name: `Build: ${app.title}`,
+                icon_color: 7322096
+              });
+              if (topic) {
+                topicId = topic.message_thread_id;
+                app.forum_topic_id = topicId;
+                queueChanged = true;
+                console.log(`Created topic ${topicId} for ${app.name}`);
+              }
+            }
+
+            // Build the spec message
+            const msg = [
+              `🔨 *NEW BUILD TRIGGERED*`,
+              ``,
+              `*App:* ${app.title}`,
+              `*Name:* \`${app.name}\``,
+              `*Tier:* ${app.tier || '?'}`,
+              `*Priority:* #${app.priority}`,
+              `*Target Price:* ${app.price || 'N/A'}`,
+              `*Target Users:* ${app.users || 'N/A'}`,
+              `*Build Days:* ${app.build_days || '?'}`,
+              ``,
+              `*Spec:*`,
+              app.spec,
+              ``,
+              `---`,
+              `Run \`/build-next\` in Claude Code to start this build.`,
+              `Output: \`apps/${app.name}/index.html\``
+            ].join('\n');
+
+            const sendParams = {
+              chat_id: CHAT,
+              text: msg,
+              parse_mode: 'Markdown'
+            };
+            if (topicId) sendParams.message_thread_id = topicId;
+
+            await tg('sendMessage', sendParams);
+            console.log(`Spec posted for ${app.name}`);
+          }
+
+          // Commit topic IDs back to queue.json if any were created
+          if (queueChanged) {
+            fs.writeFileSync('queue.json', JSON.stringify(queue, null, 2) + '\n');
+            console.log('Updated queue.json with forum_topic_id(s)');
+          }
+          SCRIPT
+
+      - name: Commit topic IDs
+        run: |
+          git diff --quiet queue.json && exit 0
+          git config user.name "kishbrac[bot]"
+          git config user.email "kishbrac[bot]@users.noreply.github.com"
+          git add queue.json
+          git commit -m "chore: store forum topic IDs in queue.json"
+          git push
