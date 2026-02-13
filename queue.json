@@ -5,7 +5,7 @@
     "name": "queue-manager",
     "title": "QueuePilot - Build Queue Manager Mini-App",
     "source": "Internal tooling",
-    "spec": "Telegram mini-app for Dave to manage the app build queue from his phone. Features: (1) Dashboard view showing all queued apps with color-coded status chips (pending=gray, in_progress=blue, done=green, blocked=red). (2) Tap any app to see full spec, notes, timestamps. (3) Drag-to-reorder priorities. (4) Add new app idea: title, spec, target price, priority ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ appended to queue.json. (5) Live status: see what Kishbrac is currently building. (6) Approve/reject completed builds with notes. (7) Cost tracker ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ TWO panels: Shared Infrastructure (reads infrastructure.json ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ shows each shared service, free tier usage %, burn when tiers exceeded) and Per-App Costs (reads each app's costs from queue.json ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ marginal burn, revenue, net, break-even). (8) Portfolio rollup: shared burn + sum of per-app burns = true total. Flag 'bleeding' apps (burn > 0, paying users = 0). Alert when free tiers approaching limits. This is a pure frontend mini-app ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ reads/writes queue.json and infrastructure.json via GitHub API (use PAT from .env). No backend needed.",
+    "spec": "Telegram mini-app for Dave to manage the app build queue from his phone. Features: (1) Dashboard view showing all queued apps with color-coded status chips (pending=gray, in_progress=blue, done=green, blocked=red). (2) Tap any app to see full spec, notes, timestamps. (3) Drag-to-reorder priorities. (4) Add new app idea: title, spec, target price, priority ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ appended to queue.json. (5) Live status: see what Kishbrac is currently building. (6) Approve/reject completed builds with notes. (7) Cost tracker ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ TWO panels: Shared Infrastructure (reads infrastructure.json ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ shows each shared service, free tier usage %, burn when tiers exceeded) and Per-App Costs (reads each app's costs from queue.json ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ marginal burn, revenue, net, break-even). (8) Portfolio rollup: shared burn + sum of per-app burns = true total. Flag 'bleeding' apps (burn > 0, paying users = 0). Alert when free tiers approaching limits. This is a pure frontend mini-app ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ reads/writes queue.json and infrastructure.json via GitHub API (use PAT from .env). No backend needed.",
     "price": "Internal tool",
     "users": "Dave (queue owner)",
     "build_days": 2,
@@ -28,7 +28,7 @@
   },
   {
     "id": 1,
-    "status": "pending",
+    "status": "in_progress",
     "name": "telescheduler",
     "title": "TeleScheduler - Recurring Message Scheduler",
     "source": "Pipeline #7",
@@ -37,7 +37,8 @@
     "users": "Telegram community managers, crypto group admins, educators",
     "build_days": 3,
     "priority": 1,
-    "tier": "2"
+    "tier": "2",
+    "started_at": "2026-02-13T23:58:26.431Z"
   },
   {
     "id": 2,
@@ -110,7 +111,7 @@
     "name": "receipt-expense",
     "title": "SnapExpense - Receipt Scanner & Categorizer",
     "source": "Pipeline #55 (Telegram adaptation)",
-    "spec": "Send a photo of a receipt to the bot, it extracts amount/vendor/date and categorizes it. Mini-app dashboard shows spending by category, monthly totals, exportable CSV for tax time. Uses Telegram's native photo sharing ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ zero friction capture.",
+    "spec": "Send a photo of a receipt to the bot, it extracts amount/vendor/date and categorizes it. Mini-app dashboard shows spending by category, monthly totals, exportable CSV for tax time. Uses Telegram's native photo sharing ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ zero friction capture.",
     "price": "$5/mo",
     "users": "Small business owners, freelancers tracking expenses",
     "build_days": 4,
@@ -149,7 +150,7 @@
     "name": "link-in-bio",
     "title": "BioLinks - Link-in-Bio with Email Capture",
     "source": "Pipeline #71 (Telegram adaptation)",
-    "spec": "Mini-app that generates a shareable link-in-bio page. Add links, social profiles, email capture form. Manage everything from within Telegram. Page hosted on GitHub Pages. Share your bio link anywhere ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ Telegram profile, Instagram, etc.",
+    "spec": "Mini-app that generates a shareable link-in-bio page. Add links, social profiles, email capture form. Manage everything from within Telegram. Page hosted on GitHub Pages. Share your bio link anywhere ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ Telegram profile, Instagram, etc.",
     "price": "$5/mo",
     "users": "Creators on Instagram/TikTok/Telegram who want a simple bio page",
     "build_days": 3,
