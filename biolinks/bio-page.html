@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My BioLinks</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .profile {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 16px;
+            border: 4px solid white;
+            object-fit: cover;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .avatar-placeholder {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            border: 4px solid white;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .name {
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .bio {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.95);
+            line-height: 1.6;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 20px;
+            background: white;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .link:active {
+            transform: translateY(-1px);
+        }
+
+        .link-icon {
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        .link-title {
+            font-weight: 600;
+            font-size: 16px;
+            flex: 1;
+        }
+
+        .link-arrow {
+            color: #999;
+            font-size: 18px;
+        }
+
+        .socials {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .social {
+            width: 52px;
+            height: 52px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 26px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .social:hover {
+            transform: scale(1.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .social:active {
+            transform: scale(1.05);
+        }
+
+        .email-capture {
+            background: white;
+            padding: 28px 24px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .email-capture h3 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .email-capture input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .email-capture input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .email-capture button {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .email-capture button:hover {
+            background: #5568d3;
+        }
+
+        .email-capture button:active {
+            background: #4c5ec4;
+        }
+
+        .success-message {
+            color: #10b981;
+            font-weight: 500;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state p {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .empty-state small {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 30px 16px;
+            }
+
+            .name {
+                font-size: 24px;
+            }
+
+            .link {
+                padding: 16px 18px;
+            }
+
+            .link-icon {
+                font-size: 24px;
+            }
+
+            .link-title {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="content">
+            <div class="empty-state">
+                <div class="empty-state-icon">🔗</div>
+                <p>Loading your bio page...</p>
+                <small>Create your own with BioLinks</small>
+            </div>
+        </div>
+
+        <div class="footer">
+            Made with <a href="#">BioLinks</a>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'biolinks_data';
+        const EMAILS_KEY = 'biolinks_emails';
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function loadBioPage() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (!stored) {
+                    showEmptyState();
+                    return;
+                }
+
+                const data = JSON.parse(stored);
+                renderBioPage(data);
+            } catch (e) {
+                console.error('Error loading bio page:', e);
+                showEmptyState();
+            }
+        }
+
+        function showEmptyState() {
+            document.getElementById('content').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔗</div>
+                    <p>No bio page found</p>
+                    <small>Open the BioLinks app to create your page</small>
+                </div>
+            `;
+        }
+
+        function renderBioPage(data) {
+            const { profile, links, socials } = data;
+
+            let html = '<div class="profile">';
+
+            // Avatar
+            if (profile.avatar) {
+                html += `<img src="${escapeHtml(profile.avatar)}" alt="Avatar" class="avatar">`;
+            } else {
+                html += `<div class="avatar-placeholder">👤</div>`;
+            }
+
+            // Name and bio
+            html += `<h1 class="name">${escapeHtml(profile.name || 'Your Name')}</h1>`;
+            if (profile.bio) {
+                html += `<p class="bio">${escapeHtml(profile.bio)}</p>`;
+            }
+            html += '</div>';
+
+            // Links
+            if (links && links.length > 0) {
+                html += '<div class="links">';
+                links.forEach(link => {
+                    html += `
+                        <a href="${escapeHtml(link.url)}" class="link" target="_blank" rel="noopener noreferrer">
+                            <span class="link-icon">${link.icon || '🔗'}</span>
+                            <span class="link-title">${escapeHtml(link.title)}</span>
+                            <span class="link-arrow">→</span>
+                        </a>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            // Social profiles
+            if (socials && Object.keys(socials).length > 0) {
+                const socialPlatforms = {
+                    instagram: { icon: '📷', url: (u) => `https://instagram.com/${u}` },
+                    twitter: { icon: '🐦', url: (u) => `https://twitter.com/${u}` },
+                    youtube: { icon: '▶️', url: (u) => `https://youtube.com/@${u}` },
+                    tiktok: { icon: '🎵', url: (u) => `https://tiktok.com/@${u}` },
+                    linkedin: { icon: '💼', url: (u) => `https://linkedin.com/in/${u}` },
+                    github: { icon: '🐙', url: (u) => `https://github.com/${u}` },
+                    facebook: { icon: '👥', url: (u) => `https://facebook.com/${u}` },
+                    telegram: { icon: '✈️', url: (u) => `https://t.me/${u}` }
+                };
+
+                html += '<div class="socials">';
+                Object.entries(socials).forEach(([platformId, username]) => {
+                    const platform = socialPlatforms[platformId];
+                    if (platform) {
+                        html += `
+                            <a href="${platform.url(username)}" class="social" target="_blank" rel="noopener noreferrer" title="${platformId}">
+                                ${platform.icon}
+                            </a>
+                        `;
+                    }
+                });
+                html += '</div>';
+            }
+
+            // Email capture
+            if (profile.emailCapture) {
+                html += `
+                    <div class="email-capture">
+                        <h3>${escapeHtml(profile.emailPrompt || 'Join my newsletter!')}</h3>
+                        <form id="email-form">
+                            <input type="email" id="email-input" placeholder="Enter your email" required>
+                            <button type="submit">Subscribe</button>
+                        </form>
+                        <div class="success-message" id="success-message">✓ Thanks for subscribing!</div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('content').innerHTML = html;
+
+            // Setup email form handler
+            if (profile.emailCapture) {
+                const form = document.getElementById('email-form');
+                const input = document.getElementById('email-input');
+                const successMsg = document.getElementById('success-message');
+
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const email = input.value;
+
+                    // Store email locally (in production, send to backend)
+                    try {
+                        const emails = JSON.parse(localStorage.getItem(EMAILS_KEY) || '[]');
+                        emails.push({
+                            email,
+                            timestamp: new Date().toISOString()
+                        });
+                        localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
+
+                        // Show success
+                        input.style.display = 'none';
+                        form.querySelector('button').style.display = 'none';
+                        successMsg.style.display = 'block';
+
+                        setTimeout(() => {
+                            input.style.display = 'block';
+                            form.querySelector('button').style.display = 'block';
+                            successMsg.style.display = 'none';
+                            input.value = '';
+                        }, 3000);
+                    } catch (err) {
+                        console.error('Error saving email:', err);
+                        alert('Error subscribing. Please try again.');
+                    }
+                });
+            }
+        }
+
+        // Load the bio page
+        loadBioPage();
+    </script>
+</body>
+</html>

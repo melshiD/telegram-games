@@ -1,0 +1,44 @@
+{
+  "profile": {
+    "name": "Jane Creator",
+    "bio": "Content creator, entrepreneur, and coffee enthusiast ☕️",
+    "avatar": "https://i.pravatar.cc/200?img=5",
+    "emailCapture": true,
+    "emailPrompt": "Join my newsletter for weekly tips!"
+  },
+  "links": [
+    {
+      "title": "My Latest YouTube Video",
+      "url": "https://youtube.com",
+      "icon": "🎥"
+    },
+    {
+      "title": "Shop My Merch",
+      "url": "https://example.com/shop",
+      "icon": "🛍️"
+    },
+    {
+      "title": "Book a Consultation",
+      "url": "https://calendly.com",
+      "icon": "📅"
+    },
+    {
+      "title": "My Blog",
+      "url": "https://example.com/blog",
+      "icon": "✍️"
+    },
+    {
+      "title": "Support Me on Patreon",
+      "url": "https://patreon.com",
+      "icon": "❤️"
+    }
+  ],
+  "socials": {
+    "instagram": "janecreator",
+    "twitter": "janecreator",
+    "youtube": "janecreator",
+    "tiktok": "janecreator",
+    "linkedin": "janecreator",
+    "github": "janecreator"
+  }
+}

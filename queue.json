@@ -145,7 +145,7 @@
   },
   {
     "id": 10,
-    "status": "in_progress",
+    "status": "done",
     "name": "link-in-bio",
     "title": "BioLinks - Link-in-Bio with Email Capture",
     "source": "Pipeline #71 (Telegram adaptation)",
@@ -155,7 +155,20 @@
     "build_days": 3,
     "priority": 10,
     "tier": "1",
-    "started_at": "2026-02-12T01:15:44.224Z"
+    "costs": {
+      "shared_infra_used": [
+        "GitHub Pages"
+      ],
+      "app_specific_services": [],
+      "app_burn_rate_usd_per_month": 0,
+      "revenue_usd_per_month": 0,
+      "net_usd_per_month": 0,
+      "paying_users": 0,
+      "price_per_user_usd_per_month": 5,
+      "break_even_users": 0
+    },
+    "started_at": "2026-02-12T01:15:44.224Z",
+    "completed_at": "2026-02-12T01:32:15.000Z"
   },
   {
     "id": 11,
