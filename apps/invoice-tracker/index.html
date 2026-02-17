@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>InvoiceTrack</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3"></script>
+    <style>
+        :root {
+            --tg-bg: var(--tg-theme-bg-color, #1a1a2e);
+            --tg-text: var(--tg-theme-text-color, #e0e0e0);
+            --tg-hint: var(--tg-theme-hint-color, #8e8e93);
+            --tg-link: var(--tg-theme-link-color, #3390ec);
+            --tg-button: var(--tg-theme-button-color, #3390ec);
+            --tg-button-text: var(--tg-theme-button-text-color, #ffffff);
+            --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #16213e);
+            --tg-section-bg: var(--tg-theme-section-bg-color, #0f3460);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--tg-bg);
+            color: var(--tg-text);
+            min-height: 100vh;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            padding-bottom: 72px;
+        }
+
+        /* Status chips */
+        .chip { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .chip-outstanding { background: rgba(255,159,10,0.2); color: #ff9f0a; }
+        .chip-overdue { background: rgba(255,69,58,0.2); color: #ff453a; }
+        .chip-paid { background: rgba(52,199,89,0.2); color: #34c759; }
+
+        /* Cards */
+        .card {
+            background: var(--tg-secondary-bg);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: transform 120ms ease;
+        }
+        .card:active { transform: scale(0.98); }
+
+        /* Bottom nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--tg-secondary-bg);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex; justify-content: space-around; align-items: center;
+            height: 64px; padding-bottom: env(safe-area-inset-bottom, 0);
+            z-index: 50;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 6px 16px; border-radius: 8px; min-width: 64px; min-height: 44px;
+            color: var(--tg-hint); font-size: 11px; font-weight: 500;
+            transition: color 120ms ease; cursor: pointer; background: none; border: none;
+        }
+        .nav-item.active { color: var(--tg-button); }
+        .nav-item svg { width: 24px; height: 24px; margin-bottom: 2px; }
+
+        /* Buttons */
+        .btn {
+            min-height: 44px; padding: 10px 20px; border: none; border-radius: 10px;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            transition: transform 120ms ease, opacity 120ms ease;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: var(--tg-button); color: var(--tg-button-text); }
+        .btn-danger { background: rgba(255,69,58,0.15); color: #ff453a; }
+        .btn-success { background: rgba(52,199,89,0.15); color: #34c759; }
+        .btn-secondary { background: rgba(142,142,147,0.15); color: var(--tg-text); }
+
+        /* Form inputs */
+        .input-field {
+            width: 100%; padding: 12px 14px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1); background: var(--tg-bg);
+            color: var(--tg-text); font-size: 15px; outline: none;
+            transition: border-color 200ms;
+        }
+        .input-field:focus { border-color: var(--tg-button); }
+
+        /* Summary stat cards */
+        .stat-card {
+            background: var(--tg-secondary-bg);
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .stat-value { font-size: 22px; font-weight: 700; }
+        .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--tg-hint); margin-top: 2px; }
+
+        /* Reminder schedule badges */
+        .reminder-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
+        }
+        .reminder-pending { background: rgba(142,142,147,0.15); color: #8e8e93; }
+        .reminder-sent { background: rgba(51,144,236,0.15); color: #3390ec; }
+        .reminder-upcoming { background: rgba(255,159,10,0.15); color: #ff9f0a; }
+
+        /* Toast */
+        .toast-container {
+            position: fixed; top: 16px; left: 16px; right: 16px;
+            z-index: 100; display: flex; flex-direction: column; gap: 8px;
+            pointer-events: none;
+        }
+        .toast {
+            background: #323248; color: #fff; padding: 12px 16px; border-radius: 10px;
+            font-size: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            animation: toastIn 250ms ease-out;
+            pointer-events: auto;
+        }
+        .toast-error { border-left: 3px solid #ff453a; }
+        .toast-success { border-left: 3px solid #34c759; }
+        .toast-info { border-left: 3px solid #3390ec; }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Overdue pulse */
+        .overdue-dot {
+            width: 8px; height: 8px; border-radius: 50%; background: #ff453a;
+            display: inline-block; animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.3); }
+        }
+
+        /* Modal overlay */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            z-index: 80; display: flex; align-items: flex-end; justify-content: center;
+        }
+        .modal-sheet {
+            background: var(--tg-secondary-bg); border-radius: 16px 16px 0 0;
+            width: 100%; max-height: 85vh; overflow-y: auto;
+            padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
+            animation: slideUp 250ms ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .modal-handle {
+            width: 36px; height: 4px; border-radius: 2px;
+            background: rgba(255,255,255,0.2); margin: 0 auto 16px;
+        }
+
+        /* Currency input wrapper */
+        .currency-wrap {
+            position: relative;
+        }
+        .currency-wrap .currency-symbol {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: var(--tg-hint); font-size: 15px; font-weight: 600;
+        }
+        .currency-wrap .input-field {
+            padding-left: 28px;
+        }
+
+        /* Checkbox toggle */
+        .toggle-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 0;
+        }
+        .toggle-switch {
+            width: 44px; height: 26px; border-radius: 13px; position: relative;
+            background: rgba(142,142,147,0.3); cursor: pointer; transition: background 200ms;
+            border: none;
+        }
+        .toggle-switch.active { background: var(--tg-button); }
+        .toggle-switch::after {
+            content: ''; position: absolute; top: 2px; left: 2px;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: #fff; transition: transform 200ms;
+        }
+        .toggle-switch.active::after { transform: translateX(18px); }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Toast overlay -->
+        <div class="toast-container">
+            <div v-for="t in toasts" :key="t.id" class="toast" :class="'toast-' + t.type">
+                {{ t.message }}
+            </div>
+        </div>
+
+        <!-- ========== DASHBOARD VIEW ========== -->
+        <div v-if="currentView === 'dashboard'">
+            <!-- Header -->
+            <div class="flex items-center justify-between px-4 py-3">
+                <div>
+                    <h1 class="text-lg font-bold">InvoiceTrack</h1>
+                    <p class="text-xs" style="color: var(--tg-hint)">{{ invoices.length }} invoice{{ invoices.length !== 1 ? 's' : '' }} tracked</p>
+                </div>
+                <button class="btn btn-primary text-sm" style="padding: 8px 16px; min-height: 36px;" @click="openAddInvoice">+ New</button>
+            </div>
+
+            <!-- Summary stats -->
+            <div class="grid grid-cols-3 gap-2 px-4 mb-4">
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #ff9f0a;">{{ outstandingCount }}</div>
+                    <div class="stat-label">Outstanding</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #ff453a;">{{ overdueCount }}</div>
+                    <div class="stat-label">Overdue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #34c759;">{{ paidCount }}</div>
+                    <div class="stat-label">Paid</div>
+                </div>
+            </div>
+
+            <!-- Amounts summary -->
+            <div class="mx-4 mb-4 card">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <div class="text-xs uppercase font-bold" style="color: var(--tg-hint)">Outstanding</div>
+                        <div class="text-lg font-bold" style="color: #ff9f0a;">{{ formatCurrency(outstandingTotal) }}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs uppercase font-bold" style="color: var(--tg-hint)">Collected</div>
+                        <div class="text-lg font-bold" style="color: #34c759;">{{ formatCurrency(paidTotal) }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter tabs -->
+            <div class="flex gap-2 px-4 mb-3 overflow-x-auto">
+                <button
+                    v-for="f in filters"
+                    :key="f.value"
+                    class="chip"
+                    :class="filter === f.value ? 'chip-active' : ''"
+                    :style="filter === f.value ? 'background: var(--tg-button); color: var(--tg-button-text);' : 'background: rgba(142,142,147,0.15); color: var(--tg-hint);'"
+                    style="cursor: pointer; white-space: nowrap; padding: 6px 14px;"
+                    @click="filter = f.value; haptic('light')"
+                >{{ f.label }} ({{ f.count }})</button>
+            </div>
+
+            <!-- Invoice list -->
+            <div class="px-4 pb-4">
+                <div v-if="filteredInvoices.length === 0" class="text-center py-12" style="color: var(--tg-hint)">
+                    <div class="text-4xl mb-3">&#x1F4CB;</div>
+                    <p class="text-sm">{{ filter === 'all' ? 'No invoices yet. Tap + New to add one.' : 'No ' + filter + ' invoices.' }}</p>
+                </div>
+                <div
+                    v-for="inv in filteredInvoices"
+                    :key="inv.id"
+                    class="card"
+                    @click="openDetail(inv)"
+                >
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span v-if="inv.status === 'overdue'" class="overdue-dot"></span>
+                                <span class="chip" :class="'chip-' + inv.status">{{ inv.status }}</span>
+                                <span v-if="inv.nextReminder" class="reminder-badge reminder-upcoming">{{ inv.nextReminder }}</span>
+                            </div>
+                            <h3 class="text-sm font-semibold truncate">{{ inv.clientName }}</h3>
+                            <p class="text-xs mt-0.5" style="color: var(--tg-hint)">{{ inv.description || 'Invoice #' + inv.invoiceNumber }}</p>
+                        </div>
+                        <div class="text-right flex-shrink-0 ml-3">
+                            <div class="text-sm font-bold">{{ formatCurrency(inv.amount) }}</div>
+                            <div class="text-xs" style="color: var(--tg-hint)">Due {{ formatDateShort(inv.dueDate) }}</div>
+                        </div>
+                    </div>
+                    <!-- Reminder progress -->
+                    <div v-if="inv.status !== 'paid' && inv.reminders.length > 0" class="flex gap-1 mt-2">
+                        <div
+                            v-for="(r, ri) in inv.reminders"
+                            :key="ri"
+                            class="flex-1 h-1 rounded-full"
+                            :style="{ background: r.sent ? '#3390ec' : 'rgba(142,142,147,0.2)' }"
+                        ></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== DETAIL VIEW ========== -->
+        <div v-if="currentView === 'detail' && selectedInvoice">
+            <!-- Back header -->
+            <div class="flex items-center gap-3 px-4 py-3">
+                <button class="nav-item" style="padding: 4px; min-width: auto;" @click="navigateTo('dashboard')">
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <h1 class="text-lg font-bold flex-1 truncate">{{ selectedInvoice.clientName }}</h1>
+                <span class="chip chip-lg" :class="'chip-' + selectedInvoice.status">{{ selectedInvoice.status }}</span>
+            </div>
+
+            <div class="px-4 pb-6">
+                <!-- Amount card -->
+                <div class="card text-center py-6">
+                    <div class="text-3xl font-bold mb-1">{{ formatCurrency(selectedInvoice.amount) }}</div>
+                    <div class="text-sm" style="color: var(--tg-hint)">
+                        Invoice #{{ selectedInvoice.invoiceNumber }}
+                        <span v-if="selectedInvoice.description"> &middot; {{ selectedInvoice.description }}</span>
+                    </div>
+                </div>
+
+                <!-- Due date & days info -->
+                <div class="card">
+                    <h3 class="text-xs font-bold uppercase mb-2" style="color: var(--tg-hint)">Timeline</h3>
+                    <div class="grid grid-cols-2 gap-y-2 text-sm">
+                        <div style="color: var(--tg-hint)">Issued</div>
+                        <div>{{ formatDateLong(selectedInvoice.issuedDate) }}</div>
+                        <div style="color: var(--tg-hint)">Due</div>
+                        <div>{{ formatDateLong(selectedInvoice.dueDate) }}</div>
+                        <div style="color: var(--tg-hint)">Status</div>
+                        <div>
+                            <span v-if="selectedInvoice.status === 'overdue'" style="color: #ff453a;">{{ daysOverdue(selectedInvoice) }} days overdue</span>
+                            <span v-else-if="selectedInvoice.status === 'outstanding'" style="color: #ff9f0a;">{{ daysUntilDue(selectedInvoice) }} days until due</span>
+                            <span v-else style="color: #34c759;">Paid {{ selectedInvoice.paidDate ? formatDateLong(selectedInvoice.paidDate) : '' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Client info -->
+                <div class="card">
+                    <h3 class="text-xs font-bold uppercase mb-2" style="color: var(--tg-hint)">Client</h3>
+                    <div class="grid grid-cols-2 gap-y-2 text-sm">
+                        <div style="color: var(--tg-hint)">Name</div>
+                        <div>{{ selectedInvoice.clientName }}</div>
+                        <div style="color: var(--tg-hint)">Email</div>
+                        <div>{{ selectedInvoice.clientEmail || '—' }}</div>
+                        <div style="color: var(--tg-hint)">Telegram</div>
+                        <div>{{ selectedInvoice.clientTelegram || '—' }}</div>
+                    </div>
+                </div>
+
+                <!-- Reminder schedule -->
+                <div class="card">
+                    <h3 class="text-xs font-bold uppercase mb-2" style="color: var(--tg-hint)">Reminder Schedule</h3>
+                    <div v-if="selectedInvoice.reminders.length === 0" class="text-sm" style="color: var(--tg-hint)">No reminders configured</div>
+                    <div v-for="(r, ri) in selectedInvoice.reminders" :key="ri" class="flex items-center justify-between py-2" :class="ri > 0 ? 'border-t border-white/5' : ''">
+                        <div class="flex items-center gap-2">
+                            <span class="reminder-badge" :class="r.sent ? 'reminder-sent' : (isReminderUpcoming(selectedInvoice, r) ? 'reminder-upcoming' : 'reminder-pending')">
+                                Day {{ r.day }}
+                            </span>
+                            <span class="text-sm">{{ formatReminderDate(selectedInvoice, r) }}</span>
+                        </div>
+                        <div>
+                            <span v-if="r.sent" class="text-xs" style="color: #3390ec;">Sent</span>
+                            <button v-else-if="isReminderDue(selectedInvoice, r)" class="btn btn-primary text-xs" style="padding: 4px 10px; min-height: 28px; font-size: 12px;" @click.stop="sendReminder(selectedInvoice, ri)">
+                                Send Now
+                            </button>
+                            <span v-else class="text-xs" style="color: var(--tg-hint)">Pending</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div v-if="selectedInvoice.notes" class="card">
+                    <h3 class="text-xs font-bold uppercase mb-2" style="color: var(--tg-hint)">Notes</h3>
+                    <p class="text-sm" style="white-space: pre-wrap;">{{ selectedInvoice.notes }}</p>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="flex flex-col gap-2 mt-4">
+                    <button v-if="selectedInvoice.status !== 'paid'" class="btn btn-success w-full" @click="markPaid">Mark as Paid</button>
+                    <button v-if="selectedInvoice.status === 'paid'" class="btn btn-secondary w-full" @click="markUnpaid">Reopen Invoice</button>
+                    <button class="btn btn-secondary w-full" @click="editInvoice">Edit Invoice</button>
+                    <button class="btn btn-primary w-full" @click="shareInvoice">Share via Telegram</button>
+                    <button class="btn btn-danger w-full" @click="confirmDelete">Delete Invoice</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== STATS VIEW ========== -->
+        <div v-if="currentView === 'stats'">
+            <div class="px-4 py-3">
+                <h1 class="text-lg font-bold mb-1">Statistics</h1>
+                <p class="text-xs mb-4" style="color: var(--tg-hint)">Your invoicing overview</p>
+            </div>
+
+            <div class="px-4 pb-6">
+                <!-- Totals -->
+                <div class="card">
+                    <h3 class="text-xs font-bold uppercase mb-3" style="color: var(--tg-hint)">All Time</h3>
+                    <div class="grid grid-cols-2 gap-y-3 text-sm">
+                        <div style="color: var(--tg-hint)">Total Invoiced</div>
+                        <div class="font-semibold">{{ formatCurrency(stats.totalInvoiced) }}</div>
+                        <div style="color: var(--tg-hint)">Total Collected</div>
+                        <div class="font-semibold" style="color: #34c759;">{{ formatCurrency(stats.totalCollected) }}</div>
+                        <div style="color: var(--tg-hint)">Outstanding</div>
+                        <div class="font-semibold" style="color: #ff9f0a;">{{ formatCurrency(stats.totalOutstanding) }}</div>
+                        <div style="color: var(--tg-hint)">Overdue</div>
+                        <div class="font-semibold" style="color: #ff453a;">{{ formatCurrency(stats.totalOverdue) }}</div>
+                    </div>
+                </div>
+
+                <!-- Collection rate -->
+                <div class="card text-center">
+                    <h3 class="text-xs font-bold uppercase mb-2" style="color: var(--tg-hint)">Collection Rate</h3>
+                    <div class="text-4xl font-bold mb-1" :style="{ color: stats.collectionRate >= 80 ? '#34c759' : stats.collectionRate >= 50 ? '#ff9f0a' : '#ff453a' }">
+                        {{ stats.collectionRate }}%
+                    </div>
+                    <div class="text-xs" style="color: var(--tg-hint)">{{ paidCount }} of {{ invoices.length }} invoices paid</div>
+                </div>
+
+                <!-- Average payment time -->
+                <div class="card">
+                    <h3 class="text-xs font-bold uppercase mb-3" style="color: var(--tg-hint)">Payment Speed</h3>
+                    <div class="grid grid-cols-2 gap-y-3 text-sm">
+                        <div style="color: var(--tg-hint)">Avg. Days to Pay</div>
+                        <div class="font-semibold">{{ stats.avgDaysToPay }} days</div>
+                        <div style="color: var(--tg-hint)">Reminders Sent</div>
+                        <div class="font-semibold">{{ stats.totalRemindersSent }}</div>
+                    </div>
+                </div>
+
+                <!-- Top clients -->
+                <div v-if="stats.topClients.length > 0" class="card">
+                    <h3 class="text-xs font-bold uppercase mb-3" style="color: var(--tg-hint)">Top Clients</h3>
+                    <div v-for="(client, ci) in stats.topClients" :key="ci" class="flex items-center justify-between py-2" :class="ci > 0 ? 'border-t border-white/5' : ''">
+                        <div class="text-sm font-medium">{{ client.name }}</div>
+                        <div class="text-sm font-semibold">{{ formatCurrency(client.total) }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== ADD/EDIT MODAL ========== -->
+        <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+            <div class="modal-sheet">
+                <div class="modal-handle"></div>
+                <h2 class="text-lg font-bold mb-4">{{ editingInvoice ? 'Edit Invoice' : 'New Invoice' }}</h2>
+
+                <div class="flex flex-col gap-3">
+                    <!-- Client name -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-1" style="color: var(--tg-hint)">Client Name *</label>
+                        <input v-model="form.clientName" class="input-field" placeholder="Acme Corp">
+                    </div>
+
+                    <!-- Client email -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-1" style="color: var(--tg-hint)">Client Email</label>
+                        <input v-model="form.clientEmail" class="input-field" type="email" placeholder="client@example.com">
+                    </div>
+
+                    <!-- Client Telegram -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-1" style="color: var(--tg-hint)">Client Telegram @</label>
+                        <input v-model="form.clientTelegram" class="input-field" placeholder="@username">
+                    </div>
+
+                    <!-- Invoice number -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-1" style="color: var(--tg-hint)">Invoice Number</label>
+                        <input v-model="form.invoiceNumber" class="input-field" placeholder="INV-001">
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-1" style="color: var(--tg-hint)">Description</label>
+                        <input v-model="form.description" class="input-field" placeholder="Website redesign">
+                    </div>
+
+                    <!-- Amount -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-1" style="color: var(--tg-hint)">Amount *</label>
+                        <div class="currency-wrap">
+                            <span class="currency-symbol">{{ currencySymbol }}</span>
+                            <input v-model="form.amount" class="input-field" type="number" step="0.01" min="0" placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <!-- Currency -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-1" style="color: var(--tg-hint)">Currency</label>
+                        <select v-model="form.currency" class="input-field">
+                            <option value="USD">USD ($)</option>
+                            <option value="EUR">EUR (&euro;)</option>
+                            <option value="GBP">GBP (&pound;)</option>
+                            <option value="CAD">CAD (C$)</option>
+                            <option value="AUD">AUD (A$)</option>
+                        </select>
+                    </div>
+
+                    <!-- Issued date -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-1" style="color: var(--tg-hint)">Issued Date</label>
+                        <input v-model="form.issuedDate" class="input-field" type="date">
+                    </div>
+
+                    <!-- Due date -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-1" style="color: var(--tg-hint)">Due Date *</label>
+                        <input v-model="form.dueDate" class="input-field" type="date">
+                    </div>
+
+                    <!-- Reminder schedule -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-2" style="color: var(--tg-hint)">Reminder Schedule</label>
+                        <p class="text-xs mb-2" style="color: var(--tg-hint)">Days after due date to send follow-ups</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button
+                                v-for="preset in REMINDER_PRESETS"
+                                :key="preset"
+                                class="chip"
+                                :style="form.reminderDays.includes(preset) ? 'background: var(--tg-button); color: var(--tg-button-text); cursor: pointer;' : 'background: rgba(142,142,147,0.15); color: var(--tg-hint); cursor: pointer;'"
+                                style="padding: 6px 12px;"
+                                @click="toggleReminder(preset)"
+                            >Day {{ preset }}</button>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-1" style="color: var(--tg-hint)">Notes</label>
+                        <textarea v-model="form.notes" class="input-field" rows="2" placeholder="Payment terms, special instructions..."></textarea>
+                    </div>
+
+                    <!-- Save buttons -->
+                    <div class="flex gap-2 mt-2">
+                        <button class="btn btn-secondary flex-1" @click="closeModal">Cancel</button>
+                        <button class="btn btn-primary flex-1" @click="saveInvoice" :disabled="!isFormValid">
+                            {{ editingInvoice ? 'Update' : 'Create' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== DELETE CONFIRM MODAL ========== -->
+        <div v-if="showDeleteConfirm" class="modal-overlay" @click.self="showDeleteConfirm = false">
+            <div class="modal-sheet" style="max-height: 40vh;">
+                <div class="modal-handle"></div>
+                <h2 class="text-lg font-bold mb-2">Delete Invoice?</h2>
+                <p class="text-sm mb-4" style="color: var(--tg-hint)">This will permanently delete the invoice for {{ selectedInvoice?.clientName }}. This action cannot be undone.</p>
+                <div class="flex gap-2">
+                    <button class="btn btn-secondary flex-1" @click="showDeleteConfirm = false">Cancel</button>
+                    <button class="btn btn-danger flex-1" @click="deleteInvoice">Delete</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== BOTTOM NAV ========== -->
+        <nav class="bottom-nav">
+            <button class="nav-item" :class="{ active: currentView === 'dashboard' }" @click="navigateTo('dashboard')">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                Invoices
+            </button>
+            <button class="nav-item" :class="{ active: currentView === 'stats' }" @click="navigateTo('stats')">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Stats
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, watch } = Vue;
+        const tg = window.Telegram.WebApp;
+
+        const STORAGE_KEY = 'invoicetrack-data';
+        const SETTINGS_KEY = 'invoicetrack-settings';
+        const REMINDER_PRESETS = [3, 7, 14, 30, 60];
+
+        createApp({
+            setup() {
+                // State
+                const invoices = ref([]);
+                const currentView = ref('dashboard');
+                const filter = ref('all');
+                const selectedInvoice = ref(null);
+                const showModal = ref(false);
+                const showDeleteConfirm = ref(false);
+                const editingInvoice = ref(null);
+                const toasts = ref([]);
+                const settings = ref({ defaultCurrency: 'USD', defaultReminders: [3, 7, 14, 30] });
+
+                // Form
+                const form = ref(emptyForm());
+
+                function emptyForm() {
+                    return {
+                        clientName: '',
+                        clientEmail: '',
+                        clientTelegram: '',
+                        invoiceNumber: '',
+                        description: '',
+                        amount: '',
+                        currency: settings.value?.defaultCurrency || 'USD',
+                        issuedDate: todayStr(),
+                        dueDate: futureDate(30),
+                        reminderDays: [...(settings.value?.defaultReminders || [3, 7, 14, 30])],
+                        notes: ''
+                    };
+                }
+
+                function todayStr() {
+                    return new Date().toISOString().split('T')[0];
+                }
+
+                function futureDate(days) {
+                    const d = new Date();
+                    d.setDate(d.getDate() + days);
+                    return d.toISOString().split('T')[0];
+                }
+
+                // Currency
+                const CURRENCY_SYMBOLS = { USD: '$', EUR: '\u20AC', GBP: '\u00A3', CAD: 'C$', AUD: 'A$' };
+                const currencySymbol = computed(() => CURRENCY_SYMBOLS[form.value.currency] || '$');
+
+                // Form validation
+                const isFormValid = computed(() => {
+                    return form.value.clientName.trim() &&
+                           form.value.amount &&
+                           parseFloat(form.value.amount) > 0 &&
+                           form.value.dueDate;
+                });
+
+                // Computed invoice status
+                function computeStatus(inv) {
+                    if (inv.paidDate) return 'paid';
+                    const now = new Date();
+                    now.setHours(0, 0, 0, 0);
+                    const due = new Date(inv.dueDate);
+                    due.setHours(0, 0, 0, 0);
+                    return now > due ? 'overdue' : 'outstanding';
+                }
+
+                function refreshStatuses() {
+                    invoices.value.forEach(inv => {
+                        inv.status = computeStatus(inv);
+                        inv.nextReminder = getNextReminderLabel(inv);
+                    });
+                }
+
+                // Counts
+                const outstandingCount = computed(() => invoices.value.filter(i => i.status === 'outstanding').length);
+                const overdueCount = computed(() => invoices.value.filter(i => i.status === 'overdue').length);
+                const paidCount = computed(() => invoices.value.filter(i => i.status === 'paid').length);
+
+                const outstandingTotal = computed(() =>
+                    invoices.value.filter(i => i.status === 'outstanding' || i.status === 'overdue')
+                        .reduce((sum, i) => sum + i.amount, 0)
+                );
+                const paidTotal = computed(() =>
+                    invoices.value.filter(i => i.status === 'paid')
+                        .reduce((sum, i) => sum + i.amount, 0)
+                );
+
+                // Filters
+                const filters = computed(() => [
+                    { label: 'All', value: 'all', count: invoices.value.length },
+                    { label: 'Outstanding', value: 'outstanding', count: outstandingCount.value },
+                    { label: 'Overdue', value: 'overdue', count: overdueCount.value },
+                    { label: 'Paid', value: 'paid', count: paidCount.value },
+                ]);
+
+                const filteredInvoices = computed(() => {
+                    let list = [...invoices.value];
+                    if (filter.value !== 'all') {
+                        list = list.filter(i => i.status === filter.value);
+                    }
+                    // Sort: overdue first, then outstanding by due date, then paid
+                    const ORDER = { overdue: 0, outstanding: 1, paid: 2 };
+                    list.sort((a, b) => {
+                        if (ORDER[a.status] !== ORDER[b.status]) return ORDER[a.status] - ORDER[b.status];
+                        return new Date(a.dueDate) - new Date(b.dueDate);
+                    });
+                    return list;
+                });
+
+                // Stats
+                const stats = computed(() => {
+                    const all = invoices.value;
+                    const paid = all.filter(i => i.status === 'paid');
+                    const overdue = all.filter(i => i.status === 'overdue');
+                    const outstanding = all.filter(i => i.status === 'outstanding' || i.status === 'overdue');
+
+                    const totalInvoiced = all.reduce((s, i) => s + i.amount, 0);
+                    const totalCollected = paid.reduce((s, i) => s + i.amount, 0);
+                    const totalOutstanding = outstanding.reduce((s, i) => s + i.amount, 0);
+                    const totalOverdue = overdue.reduce((s, i) => s + i.amount, 0);
+
+                    const collectionRate = all.length > 0 ? Math.round((paid.length / all.length) * 100) : 0;
+
+                    // Avg days to pay
+                    let avgDaysToPay = 0;
+                    if (paid.length > 0) {
+                        const totalDays = paid.reduce((s, i) => {
+                            const issued = new Date(i.issuedDate);
+                            const paidD = new Date(i.paidDate);
+                            return s + Math.max(0, Math.round((paidD - issued) / 86400000));
+                        }, 0);
+                        avgDaysToPay = Math.round(totalDays / paid.length);
+                    }
+
+                    // Total reminders sent
+                    const totalRemindersSent = all.reduce((s, i) => s + i.reminders.filter(r => r.sent).length, 0);
+
+                    // Top clients
+                    const clientMap = {};
+                    all.forEach(i => {
+                        const name = i.clientName;
+                        clientMap[name] = (clientMap[name] || 0) + i.amount;
+                    });
+                    const topClients = Object.entries(clientMap)
+                        .map(([name, total]) => ({ name, total }))
+                        .sort((a, b) => b.total - a.total)
+                        .slice(0, 5);
+
+                    return { totalInvoiced, totalCollected, totalOutstanding, totalOverdue, collectionRate, avgDaysToPay, totalRemindersSent, topClients };
+                });
+
+                // Formatting
+                function formatCurrency(amount) {
+                    return '$' + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+
+                function formatDateShort(dateStr) {
+                    const d = new Date(dateStr + 'T00:00:00');
+                    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                }
+
+                function formatDateLong(dateStr) {
+                    if (!dateStr) return '—';
+                    const d = new Date(dateStr + 'T00:00:00');
+                    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+                }
+
+                function daysOverdue(inv) {
+                    const now = new Date();
+                    now.setHours(0, 0, 0, 0);
+                    const due = new Date(inv.dueDate + 'T00:00:00');
+                    return Math.max(0, Math.round((now - due) / 86400000));
+                }
+
+                function daysUntilDue(inv) {
+                    const now = new Date();
+                    now.setHours(0, 0, 0, 0);
+                    const due = new Date(inv.dueDate + 'T00:00:00');
+                    return Math.max(0, Math.round((due - now) / 86400000));
+                }
+
+                // Reminders
+                function getNextReminderLabel(inv) {
+                    if (inv.status === 'paid') return null;
+                    const unsent = inv.reminders.filter(r => !r.sent);
+                    if (unsent.length === 0) return null;
+                    const nextDay = Math.min(...unsent.map(r => r.day));
+                    const due = new Date(inv.dueDate + 'T00:00:00');
+                    const reminderDate = new Date(due);
+                    reminderDate.setDate(reminderDate.getDate() + nextDay);
+                    const now = new Date();
+                    now.setHours(0, 0, 0, 0);
+                    const diff = Math.round((reminderDate - now) / 86400000);
+                    if (diff <= 0) return 'Remind now';
+                    if (diff === 1) return 'Remind tomorrow';
+                    return 'Remind in ' + diff + 'd';
+                }
+
+                function formatReminderDate(inv, reminder) {
+                    const due = new Date(inv.dueDate + 'T00:00:00');
+                    due.setDate(due.getDate() + reminder.day);
+                    return formatDateShort(due.toISOString().split('T')[0]);
+                }
+
+                function isReminderUpcoming(inv, reminder) {
+                    if (reminder.sent) return false;
+                    const due = new Date(inv.dueDate + 'T00:00:00');
+                    due.setDate(due.getDate() + reminder.day);
+                    const now = new Date();
+                    now.setHours(0, 0, 0, 0);
+                    const diff = Math.round((due - now) / 86400000);
+                    return diff <= 3 && diff > 0;
+                }
+
+                function isReminderDue(inv, reminder) {
+                    if (reminder.sent) return false;
+                    const due = new Date(inv.dueDate + 'T00:00:00');
+                    due.setDate(due.getDate() + reminder.day);
+                    const now = new Date();
+                    now.setHours(0, 0, 0, 0);
+                    return now >= due;
+                }
+
+                function sendReminder(inv, reminderIdx) {
+                    haptic('medium');
+                    inv.reminders[reminderIdx].sent = true;
+                    inv.reminders[reminderIdx].sentDate = todayStr();
+
+                    // If client has Telegram handle, share a message
+                    if (inv.clientTelegram) {
+                        const handle = inv.clientTelegram.replace('@', '');
+                        const msg = `Hi! Friendly reminder about invoice #${inv.invoiceNumber} for ${formatCurrency(inv.amount)}, which was due ${formatDateShort(inv.dueDate)}. Please let me know if you have any questions!`;
+                        try {
+                            tg.openTelegramLink(`https://t.me/${handle}`);
+                        } catch (e) {
+                            // fallback
+                        }
+                        toast('Reminder marked as sent', 'success');
+                    } else {
+                        toast('Reminder marked as sent (no Telegram contact)', 'info');
+                    }
+
+                    refreshStatuses();
+                    saveData();
+                }
+
+                // Toggle reminder preset
+                function toggleReminder(day) {
+                    haptic('light');
+                    const idx = form.value.reminderDays.indexOf(day);
+                    if (idx > -1) {
+                        form.value.reminderDays.splice(idx, 1);
+                    } else {
+                        form.value.reminderDays.push(day);
+                        form.value.reminderDays.sort((a, b) => a - b);
+                    }
+                }
+
+                // Navigation
+                function navigateTo(view) {
+                    haptic('light');
+                    currentView.value = view;
+                    if (view === 'dashboard') {
+                        selectedInvoice.value = null;
+                        refreshStatuses();
+                    }
+                }
+
+                function openDetail(inv) {
+                    haptic('light');
+                    selectedInvoice.value = inv;
+                    currentView.value = 'detail';
+                }
+
+                function openAddInvoice() {
+                    haptic('medium');
+                    editingInvoice.value = null;
+                    form.value = emptyForm();
+                    form.value.invoiceNumber = generateInvoiceNumber();
+                    showModal.value = true;
+                }
+
+                function editInvoice() {
+                    haptic('light');
+                    const inv = selectedInvoice.value;
+                    editingInvoice.value = inv;
+                    form.value = {
+                        clientName: inv.clientName,
+                        clientEmail: inv.clientEmail || '',
+                        clientTelegram: inv.clientTelegram || '',
+                        invoiceNumber: inv.invoiceNumber,
+                        description: inv.description || '',
+                        amount: String(inv.amount),
+                        currency: inv.currency || 'USD',
+                        issuedDate: inv.issuedDate,
+                        dueDate: inv.dueDate,
+                        reminderDays: inv.reminders.map(r => r.day),
+                        notes: inv.notes || ''
+                    };
+                    showModal.value = true;
+                }
+
+                function closeModal() {
+                    showModal.value = false;
+                    editingInvoice.value = null;
+                }
+
+                function generateInvoiceNumber() {
+                    const count = invoices.value.length + 1;
+                    return 'INV-' + String(count).padStart(3, '0');
+                }
+
+                function generateId() {
+                    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+                }
+
+                // Save / create invoice
+                function saveInvoice() {
+                    if (!isFormValid.value) return;
+                    haptic('medium');
+
+                    const data = {
+                        clientName: form.value.clientName.trim(),
+                        clientEmail: form.value.clientEmail.trim(),
+                        clientTelegram: form.value.clientTelegram.trim(),
+                        invoiceNumber: form.value.invoiceNumber.trim() || generateInvoiceNumber(),
+                        description: form.value.description.trim(),
+                        amount: parseFloat(form.value.amount),
+                        currency: form.value.currency,
+                        issuedDate: form.value.issuedDate || todayStr(),
+                        dueDate: form.value.dueDate,
+                        notes: form.value.notes.trim(),
+                    };
+
+                    if (editingInvoice.value) {
+                        // Update existing
+                        const inv = editingInvoice.value;
+                        Object.assign(inv, data);
+                        // Update reminders: keep sent status for matching days
+                        const oldReminders = inv.reminders || [];
+                        inv.reminders = form.value.reminderDays.map(day => {
+                            const existing = oldReminders.find(r => r.day === day);
+                            return existing || { day, sent: false, sentDate: null };
+                        });
+                        inv.status = computeStatus(inv);
+                        inv.nextReminder = getNextReminderLabel(inv);
+                        selectedInvoice.value = inv;
+                        toast('Invoice updated', 'success');
+                    } else {
+                        // Create new
+                        const inv = {
+                            id: generateId(),
+                            ...data,
+                            paidDate: null,
+                            createdAt: new Date().toISOString(),
+                            reminders: form.value.reminderDays.map(day => ({ day, sent: false, sentDate: null })),
+                            status: 'outstanding',
+                            nextReminder: null
+                        };
+                        inv.status = computeStatus(inv);
+                        inv.nextReminder = getNextReminderLabel(inv);
+                        invoices.value.push(inv);
+                        toast('Invoice created', 'success');
+                    }
+
+                    saveData();
+                    closeModal();
+                }
+
+                // Mark paid/unpaid
+                function markPaid() {
+                    haptic('success');
+                    selectedInvoice.value.paidDate = todayStr();
+                    selectedInvoice.value.status = 'paid';
+                    selectedInvoice.value.nextReminder = null;
+                    saveData();
+                    toast('Invoice marked as paid!', 'success');
+                }
+
+                function markUnpaid() {
+                    haptic('medium');
+                    selectedInvoice.value.paidDate = null;
+                    selectedInvoice.value.status = computeStatus(selectedInvoice.value);
+                    selectedInvoice.value.nextReminder = getNextReminderLabel(selectedInvoice.value);
+                    saveData();
+                    toast('Invoice reopened', 'info');
+                }
+
+                // Delete
+                function confirmDelete() {
+                    haptic('warning');
+                    showDeleteConfirm.value = true;
+                }
+
+                function deleteInvoice() {
+                    haptic('medium');
+                    const idx = invoices.value.findIndex(i => i.id === selectedInvoice.value.id);
+                    if (idx > -1) invoices.value.splice(idx, 1);
+                    saveData();
+                    showDeleteConfirm.value = false;
+                    navigateTo('dashboard');
+                    toast('Invoice deleted', 'info');
+                }
+
+                // Share
+                function shareInvoice() {
+                    haptic('medium');
+                    const inv = selectedInvoice.value;
+                    const text = `Invoice #${inv.invoiceNumber}\nClient: ${inv.clientName}\nAmount: ${formatCurrency(inv.amount)}\nDue: ${formatDateLong(inv.dueDate)}\nStatus: ${inv.status.toUpperCase()}`;
+                    try {
+                        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`);
+                    } catch (e) {
+                        // Fallback: copy to clipboard
+                        navigator.clipboard.writeText(text).then(() => {
+                            toast('Copied to clipboard', 'success');
+                        }).catch(() => {
+                            toast('Could not share', 'error');
+                        });
+                    }
+                }
+
+                // Haptic helper
+                function haptic(type) {
+                    try {
+                        if (type === 'success' || type === 'warning' || type === 'error') {
+                            tg.HapticFeedback.notificationOccurred(type);
+                        } else {
+                            tg.HapticFeedback.impactOccurred(type || 'medium');
+                        }
+                    } catch (e) {}
+                }
+
+                // Toast
+                function toast(message, type) {
+                    const t = { id: Date.now(), message, type };
+                    toasts.value.push(t);
+                    setTimeout(() => {
+                        const idx = toasts.value.indexOf(t);
+                        if (idx > -1) toasts.value.splice(idx, 1);
+                    }, 3000);
+                }
+
+                // Persistence
+                function saveData() {
+                    const data = invoices.value.map(inv => ({
+                        id: inv.id,
+                        clientName: inv.clientName,
+                        clientEmail: inv.clientEmail,
+                        clientTelegram: inv.clientTelegram,
+                        invoiceNumber: inv.invoiceNumber,
+                        description: inv.description,
+                        amount: inv.amount,
+                        currency: inv.currency,
+                        issuedDate: inv.issuedDate,
+                        dueDate: inv.dueDate,
+                        paidDate: inv.paidDate,
+                        notes: inv.notes,
+                        reminders: inv.reminders,
+                        createdAt: inv.createdAt
+                    }));
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                }
+
+                function loadData() {
+                    try {
+                        const raw = localStorage.getItem(STORAGE_KEY);
+                        if (raw) {
+                            const data = JSON.parse(raw);
+                            invoices.value = data.map(inv => ({
+                                ...inv,
+                                status: 'outstanding',
+                                nextReminder: null
+                            }));
+                            refreshStatuses();
+                        }
+                    } catch (e) {
+                        console.error('Failed to load data:', e);
+                    }
+                }
+
+                // Lifecycle
+                onMounted(() => {
+                    tg.ready();
+                    tg.expand();
+                    loadData();
+
+                    // Set up back button
+                    tg.BackButton.onClick(() => {
+                        if (showModal.value) {
+                            closeModal();
+                        } else if (showDeleteConfirm.value) {
+                            showDeleteConfirm.value = false;
+                        } else if (currentView.value === 'detail') {
+                            navigateTo('dashboard');
+                        }
+                    });
+                });
+
+                // Watch view for back button
+                watch(currentView, (view) => {
+                    if (view === 'detail') {
+                        tg.BackButton.show();
+                    } else {
+                        tg.BackButton.hide();
+                    }
+                });
+
+                watch(showModal, (val) => {
+                    if (val) tg.BackButton.show();
+                    else if (currentView.value === 'dashboard') tg.BackButton.hide();
+                });
+
+                return {
+                    // State
+                    invoices, currentView, filter, selectedInvoice,
+                    showModal, showDeleteConfirm, editingInvoice,
+                    form, toasts, settings,
+
+                    // Computed
+                    currencySymbol, isFormValid,
+                    outstandingCount, overdueCount, paidCount,
+                    outstandingTotal, paidTotal,
+                    filters, filteredInvoices, stats,
+
+                    // Constants
+                    REMINDER_PRESETS,
+
+                    // Methods
+                    navigateTo, openDetail, openAddInvoice, editInvoice,
+                    closeModal, saveInvoice, toggleReminder,
+                    markPaid, markUnpaid, confirmDelete, deleteInvoice,
+                    shareInvoice, sendReminder,
+                    formatCurrency, formatDateShort, formatDateLong,
+                    daysOverdue, daysUntilDue,
+                    formatReminderDate, isReminderUpcoming, isReminderDue,
+                    haptic
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

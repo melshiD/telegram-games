@@ -68,7 +68,7 @@
   },
   {
     "id": 4,
-    "status": "in_progress",
+    "status": "done",
     "name": "invoice-tracker",
     "title": "InvoiceTrack - Invoice Follow-Up from Telegram",
     "source": "Pipeline #8 (Telegram adaptation)",
@@ -78,7 +78,18 @@
     "build_days": 3,
     "priority": 4,
     "tier": "2",
-    "started_at": "2026-02-15T23:33:01.274Z"
+    "costs": {
+      "shared_infra_used": ["GitHub Pages"],
+      "app_specific_services": [],
+      "app_burn_rate_usd_per_month": 0,
+      "revenue_usd_per_month": 0,
+      "net_usd_per_month": 0,
+      "paying_users": 0,
+      "price_per_user_usd_per_month": 5,
+      "break_even_users": 0
+    },
+    "started_at": "2026-02-15T23:33:01.274Z",
+    "completed_at": "2026-02-17T18:00:00.000Z"
   },
   {
     "id": 5,
